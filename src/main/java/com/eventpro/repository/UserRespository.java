@@ -1,4 +1,9 @@
 package com.eventpro.repository;
+import  com.eventpro.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
 
-public class UserRespository {
+public interface UserRespository extends JpaRepository<User, Long> {
+Optional<User> findByEmail(String email);
+boolean existsByEmail(String email);
 }
