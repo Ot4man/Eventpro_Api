@@ -7,6 +7,7 @@ import com.eventpro.service.PromotionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -26,38 +27,48 @@ public class PromotionController {
         return promotionService.getAllPromotions()
                 .stream().map(promotionMapper::toDTO).toList();
     }
-    //get promo by id
+
+    // get promo by id
     @GetMapping("/{id}")
-    public Promotion getPromotionById(@PathVariable Long id) {
-        return promotionService.getPromotionById(id);
+    public PromotionResponseDTO getPromotionById(@PathVariable Long id) {
+        return promotionMapper.toDTO(promotionService.getPromotionById(id));
     }
-    //get promo by code
-    @GetMapping("code/{code}")
+
+    // get promo by code
+    @GetMapping("/code/{code}")
     public PromotionResponseDTO getPromotionByCode(@PathVariable String code) {
         return promotionMapper.toDTO(promotionService.getPromotionByCode(code));
     }
-    //get promo by eventid
-    @GetMapping("/event/{eventId}")
-    public List<PromotionResponseDTO> getPromotionByEvent(@PathVariable Long eventId) {return promotionService.getPromotionsByEvent(eventId).stream().map(promotionMapper::toDTO).toList();}
 
-        //Create promotion
+    // get promo by eventid
+    @GetMapping("/event/{eventId}")
+    public List<PromotionResponseDTO> getPromotionByEvent(@PathVariable Long eventId) {
+        return promotionService.getPromotionsByEvent(eventId).stream().map(promotionMapper::toDTO).toList();
+    }
+
+    // Calculate discount for an amount
+    @GetMapping("/calculate")
+    public BigDecimal calculateDiscount(@RequestParam String code, @RequestParam BigDecimal amount) {
+        return promotionService.calculateDiscount(code, amount);
+    }
+
+    // Create promotion
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PromotionResponseDTO createPromotion(@RequestBody Promotion promotion) {
         return promotionMapper.toDTO(promotionService.createPromotion(promotion));
     }
 
-    //Update promo
-    @PutMapping("{id}")
+    // Update promo
+    @PutMapping("/{id}")
     public PromotionResponseDTO updatePromotion(@PathVariable Long id, @RequestBody Promotion promotion) {
-        return promotionMapper.toDTO(promotionService.updatePromotion(id,promotion));
+        return promotionMapper.toDTO(promotionService.updatePromotion(id, promotion));
     }
 
-    //Delete promo
-    @DeleteMapping("{id}")
+    // Delete promo
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletePromotion(@PathVariable Long id){
+    public void deletePromotion(@PathVariable Long id) {
         promotionService.deletePromotion(id);
     }
-
 }

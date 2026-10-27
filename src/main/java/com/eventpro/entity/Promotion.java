@@ -50,10 +50,13 @@ public class Promotion {
     private int usageCount;
 
     public boolean isValid() {
+        if (startDate == null || endDate == null) {
+            return false;
+        }
         LocalDate today = LocalDate.now();
 
-        return today.compareTo(startDate) >= 0
-                && today.compareTo(endDate) <= 0
+        return !today.isBefore(startDate)
+                && !today.isAfter(endDate)
                 && usageCount < usageLimit;
     }
 
@@ -63,8 +66,9 @@ public class Promotion {
         }
 
         if (discountType == DiscountType.PERCENTAGE) {
-            return amount.multiply(discountValue)
+            BigDecimal discount = amount.multiply(discountValue)
                     .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            return discount.min(amount);
         }
 
         if (discountType == DiscountType.FIXED_AMOUNT) {
@@ -72,5 +76,9 @@ public class Promotion {
         }
 
         return BigDecimal.ZERO;
+    }
+
+    public void incrementUsage() {
+        this.usageCount++;
     }
 }

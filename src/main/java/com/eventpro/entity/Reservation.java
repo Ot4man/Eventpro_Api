@@ -58,9 +58,16 @@ public class Reservation {
     private List<ReservationLine> lines = new ArrayList<>();
 
     public BigDecimal calculateTotal() {
-        return lines.stream()
+        BigDecimal subtotal = lines.stream()
                 .map(ReservationLine::calculateSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (promotion != null && promotion.isValid()) {
+            BigDecimal discount = promotion.calculateDiscount(subtotal);
+            return subtotal.subtract(discount).max(BigDecimal.ZERO);
+        }
+
+        return subtotal;
     }
 
     public void confirm() {

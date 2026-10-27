@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 public class PromotionMapper {
 
     public PromotionResponseDTO toDTO(Promotion promotion) {
+        if (promotion == null) {
+            return null;
+        }
         return new PromotionResponseDTO(
                 promotion.getId(),
                 promotion.getCode(),
-                promotion.getDiscountType().toString(),
+                promotion.getDiscountType() != null ? promotion.getDiscountType().name() : null,
                 promotion.getDiscountValue(),
                 promotion.getStartDate(),
                 promotion.getEndDate(),

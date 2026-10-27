@@ -26,9 +26,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({BadRequestException.class, IllegalArgumentException.class})
     public ResponseEntity<Map<String, Object>> handleBadRequest(
-            IllegalArgumentException ex) {
+            Exception ex) {
 
         Map<String, Object> body = Map.of(
                 "timestamp", LocalDateTime.now(),
