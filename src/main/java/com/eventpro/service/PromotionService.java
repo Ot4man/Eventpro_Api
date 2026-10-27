@@ -42,7 +42,57 @@ public class PromotionService {
                 "promtition not foun by code:"+code
         ));
     }
-    //find by
+    //find by Event
+    @Transactional(readOnly = true)
+    public List<Promotion> getPromotionsByEvent(Long eventId){
+        return promotionRepository.findByEventId(eventId);
+    }
+    @Transactional(readOnly = true)
+    public BigDecimal calculateDiscount(String code,BigDecimal amount){
+        if(amount == null || amount.signum() <0){
+            throw new IllegalArgumentException("amount cannot be negative");
+        }
+        Promotion promotion = getPromotionByCode(code);
+        if (!promotion.isValid()) {
+            throw new IllegalArgumentException(
+                    "promo not valide"
+            );
+        }
+
+        return promotion.calculateDiscount(amount);
+    }
+    public void deletePromotion(Long id) {
+        Promotion promotion = getPromotionById(id);
+        promotionRepository.delete(promotion);
+    }
+
+    private void validateDates(Promotion promotion) {
+        LocalDate start = promotion.getStartDate();
+        LocalDate end = promotion.getEndDate();
+
+        if (start == null || end == null) {
+            throw new IllegalArgumentException(
+                    "start and end date cannot be null"
+            );
+        }
+
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException(
+                    "end date cannot be before start date"
+            );
+        }
+
+        if (promotion.getDiscountValue() == null
+                || promotion.getDiscountValue().signum() <= 0) {
+            throw new IllegalArgumentException(
+                    "value must be positive"
+            );
+        }
+    }
+
+
+
+
     public Promotion createPromotion(Promotion promotion) {
         promotion.setId(null);
     if(promotion.getCode() == null || promotion.getCode().isBlank()){
