@@ -2,6 +2,7 @@
 package com.eventpro.service;
 
 import com.eventpro.entity.Promotion;
+import com.eventpro.exception.ResourceNotFoundException;
 import com.eventpro.repository.PromotionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +30,15 @@ public class PromotionService {
     @Transactional(readOnly = true)
     public Promotion getPromotionById(Long id) {
         return promotionRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Promotion not found with id : " + id
-                        )
-                );
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Promotion introuvable avec l'id : " + id
+                ));
     }
     //find promo by code
     @Transactional(readOnly = true)
     public  Promotion getPromotionByCode(String code){
-        return promotionRepository.findByCodeIgnoreCase(code).orElseThrow(()-> new IllegalArgumentException(
-                "promtition not foun by code:"+code
+        return promotionRepository.findByCodeIgnoreCase(code).orElseThrow(()-> new ResourceNotFoundException(
+                "promtition not found by code:"+code
         ));
     }
     //find by Event
