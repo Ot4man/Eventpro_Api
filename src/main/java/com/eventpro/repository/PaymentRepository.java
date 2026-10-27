@@ -2,7 +2,7 @@
 package com.eventpro.repository;
 
 import com.eventpro.entity.Payment;
-import com.eventpro.enums.PaymentStatus;
+import com.eventpro.entity.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
