@@ -1,4 +1,4 @@
-package org.eventpro.eventpro_api;
+package com.eventpro;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,3 +11,4 @@ class EventproApiApplicationTests {
     }
 
 }
+
