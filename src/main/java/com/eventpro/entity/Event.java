@@ -56,14 +56,13 @@ public class Event {
     @Column(nullable = false)
     private int capacity;
 
-    @ManyToMany
-    @JoinTable(
-            name = "event_categories",
-            joinColumns = @JoinColumn(name = "event_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
+    @OneToMany(
+            mappedBy = "event",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     @Builder.Default
-    private List<TicketCategory> categories = new ArrayList<>();
+    private List<TicketCategoriesPerEvent> categories = new ArrayList<>();
 
     public void publish() {
         this.status = EventStatus.PUBLISHED;
