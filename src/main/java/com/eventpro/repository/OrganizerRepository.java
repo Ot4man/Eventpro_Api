@@ -1,4 +1,7 @@
 package com.eventpro.repository;
 
-public class OrganizerRepository {
+import com.eventpro.entity.Organizer;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrganizerRepository extends JpaRepository<Organizer, Long> {
 }
