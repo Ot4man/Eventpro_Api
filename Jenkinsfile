@@ -1,4 +1,3 @@
-
 pipeline {
     agent {
         label 'eventpro-windows-java17'
@@ -9,6 +8,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout Verification') {
             steps {
                 echo 'EventPro repository connected successfully!'
@@ -26,22 +26,26 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build & Test with JaCoCo') {
             steps {
                 bat '''
                     set "PATH=%JAVA_HOME%\\bin;%PATH%"
-                    .\\mvnw.cmd clean compile
+                    .\\mvnw.cmd clean verify
                 '''
             }
         }
 
-        stage('Tests') {
+        stage('Archive JaCoCo Reports') {
             steps {
-                bat '''
-                    set "PATH=%JAVA_HOME%\\bin;%PATH%"
-                    .\\mvnw.cmd test
-                '''
+                archiveArtifacts artifacts: 'target/site/jacoco/**',
+                                 allowEmptyArchive: false
             }
+        }
+    }
+
+    post {
+        always {
+            junit 'target/surefire-reports/*.xml'
         }
     }
 }
