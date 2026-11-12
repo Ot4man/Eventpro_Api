@@ -2,27 +2,12 @@ package com.eventpro.mapper;
 
 import com.eventpro.dto.PromotionResponseDTO;
 import com.eventpro.entity.Promotion;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class PromotionMapper {
+@Mapper(componentModel = "spring")
+public interface PromotionMapper {
 
-    public PromotionResponseDTO toDTO(Promotion promotion) {
-        if (promotion == null) {
-            return null;
-        }
-        return new PromotionResponseDTO(
-                promotion.getId(),
-                promotion.getCode(),
-                promotion.getDiscountType() != null ? promotion.getDiscountType().name() : null,
-                promotion.getDiscountValue(),
-                promotion.getStartDate(),
-                promotion.getEndDate(),
-                promotion.getUsageCount(),
-                promotion.getUsageLimit(),
-                promotion.getEvent() != null
-                        ? promotion.getEvent().getId()
-                        : null
-        );
-    }
+    @Mapping(target = "eventId", source = "event.id")
+    PromotionResponseDTO toDTO(Promotion promotion);
 }

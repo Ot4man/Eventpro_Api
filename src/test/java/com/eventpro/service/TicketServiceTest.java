@@ -4,6 +4,7 @@ import com.eventpro.dto.TicketResponse;
 import com.eventpro.entity.*;
 import com.eventpro.entity.enums.TicketStatus;
 import com.eventpro.exception.TicketAlreadyUsedException;
+import com.eventpro.mapper.TicketMapper;
 import com.eventpro.repository.TicketRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +29,9 @@ class TicketServiceTest {
     @Mock
     private TicketRepository ticketRepository;
 
+    @Mock
+    private TicketMapper ticketMapper;
+
     @InjectMocks
     private TicketService ticketService;
 
@@ -41,7 +45,7 @@ class TicketServiceTest {
 
     @BeforeEach
     void setUp() {
-        client = Client.builder().id(1L).nom("Karim").email("karim@test.com").build();
+        client = Client.builder().id(1L).name("Karim").email("karim@test.com").build();
         event = Event.builder().id(10L).title("Festival Mawazine").build();
         ticketCategory = TicketCategory.builder().id(5L).name("VIP").build();
         eventCategory = TicketCategoriesPerEvent.builder()
@@ -68,6 +72,17 @@ class TicketServiceTest {
                 .issueDate(Instant.now())
                 .status(TicketStatus.VALID)
                 .build();
+
+        lenient().when(ticketMapper.toResponse(any(Ticket.class))).thenAnswer(inv -> {
+            Ticket t = inv.getArgument(0);
+            return TicketResponse.builder()
+                    .id(t.getId())
+                    .code(t.getCode())
+                    .status(t.getStatus())
+                    .scanDate(t.getScanDate())
+                    .issueDate(t.getIssueDate())
+                    .build();
+        });
     }
 
     @Test
@@ -111,4 +126,3 @@ class TicketServiceTest {
         verify(ticketRepository, times(2)).save(any(Ticket.class));
     }
 }
-

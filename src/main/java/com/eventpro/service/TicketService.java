@@ -7,6 +7,7 @@ import com.eventpro.entity.Ticket;
 import com.eventpro.entity.enums.TicketStatus;
 import com.eventpro.exception.ResourceNotFoundException;
 import com.eventpro.exception.TicketAlreadyUsedException;
+import com.eventpro.mapper.TicketMapper;
 import com.eventpro.repository.TicketRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
+    private final TicketMapper ticketMapper;
 
-    public TicketService(TicketRepository ticketRepository) {
+    public TicketService(TicketRepository ticketRepository, TicketMapper ticketMapper) {
         this.ticketRepository = ticketRepository;
+        this.ticketMapper = ticketMapper;
     }
 
     @Transactional
@@ -51,13 +54,13 @@ public class TicketService {
     public TicketResponse getTicketByCode(String code) {
         Ticket ticket = ticketRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Billet introuvable avec le code : " + code));
-        return toResponse(ticket);
+        return ticketMapper.toResponse(ticket);
     }
 
     @Transactional
     public List<TicketResponse> getTicketsByReservation(Long reservationId) {
         return ticketRepository.findByReservationLineReservationId(reservationId).stream()
-                .map(this::toResponse)
+                .map(ticketMapper::toResponse)
                 .toList();
     }
 
@@ -76,22 +79,10 @@ public class TicketService {
 
         ticket.scan();
         Ticket updated = ticketRepository.save(ticket);
-        return toResponse(updated);
+        return ticketMapper.toResponse(updated);
     }
 
     public TicketResponse toResponse(Ticket ticket) {
-        ReservationLine line = ticket.getReservationLine();
-        return TicketResponse.builder()
-                .id(ticket.getId())
-                .code(ticket.getCode())
-                .reservationId(line.getReservation().getId())
-                .eventTitle(line.getCategory().getEvent().getTitle())
-                .categoryName(line.getCategory().getCategory().getName())
-                .price(line.getFixedUnitPrice())
-                .clientName(line.getReservation().getClient().getNom())
-                .status(ticket.getStatus())
-                .issueDate(ticket.getIssueDate())
-                .scanDate(ticket.getScanDate())
-                .build();
+        return ticketMapper.toResponse(ticket);
     }
 }

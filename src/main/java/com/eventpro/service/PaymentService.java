@@ -11,6 +11,7 @@ import com.eventpro.entity.enums.ReservationStatus;
 import com.eventpro.exception.IdempotencyConflictException;
 import com.eventpro.exception.ReservationExpiredException;
 import com.eventpro.exception.ResourceNotFoundException;
+import com.eventpro.mapper.PaymentMapper;
 import com.eventpro.repository.PaymentRepository;
 import com.eventpro.repository.ReservationRepository;
 import com.eventpro.repository.TicketCategoriesPerEventRepository;
@@ -29,17 +30,20 @@ public class PaymentService {
     private final ReservationRepository reservationRepository;
     private final TicketCategoriesPerEventRepository categoryRepository;
     private final TicketService ticketService;
+    private final PaymentMapper paymentMapper;
 
     public PaymentService(
             PaymentRepository paymentRepository,
             ReservationRepository reservationRepository,
             TicketCategoriesPerEventRepository categoryRepository,
-            TicketService ticketService
+            TicketService ticketService,
+            PaymentMapper paymentMapper
     ) {
         this.paymentRepository = paymentRepository;
         this.reservationRepository = reservationRepository;
         this.categoryRepository = categoryRepository;
         this.ticketService = ticketService;
+        this.paymentMapper = paymentMapper;
     }
 
     @Transactional
@@ -55,7 +59,7 @@ public class PaymentService {
                     || prev.getAmount().compareTo(request.amount()) != 0) {
                 throw new IdempotencyConflictException("Cette clé d'idempotence a déjà été utilisée pour un panier différent");
             }
-            return toResponse(prev);
+            return paymentMapper.toResponse(prev);
         }
 
         Reservation reservation = reservationRepository.findById(request.reservationId())
@@ -107,32 +111,20 @@ public class PaymentService {
             ticketService.generateTicketsForReservation(reservation);
         }
 
-        return toResponse(savedPayment);
+        return paymentMapper.toResponse(savedPayment);
     }
 
     @Transactional
     public PaymentResponse getPaymentById(Long id) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paiement introuvable : " + id));
-        return toResponse(payment);
+        return paymentMapper.toResponse(payment);
     }
 
     @Transactional
     public List<PaymentResponse> getPaymentsByReservation(Long reservationId) {
         return paymentRepository.findByReservationId(reservationId).stream()
-                .map(this::toResponse)
+                .map(paymentMapper::toResponse)
                 .toList();
-    }
-
-    private PaymentResponse toResponse(Payment payment) {
-        return PaymentResponse.builder()
-                .id(payment.getId())
-                .reference(payment.getReference())
-                .reservationId(payment.getReservation().getId())
-                .idempotencyKey(payment.getIdempotencyKey())
-                .amount(payment.getAmount())
-                .paymentDate(payment.getPaymentDate())
-                .status(payment.getStatus())
-                .build();
     }
 }

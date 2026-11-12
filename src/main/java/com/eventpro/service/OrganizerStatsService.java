@@ -86,7 +86,7 @@ public class OrganizerStatsService {
 
         return OrganizerStatsResponse.builder()
                 .organizerId(organizer.getId())
-                .organizerName(organizer.getNomOrganisation() != null ? organizer.getNomOrganisation() : organizer.getNom())
+                .organizerName(organizer.getOrganisationName() != null ? organizer.getOrganisationName() : organizer.getName())
                 .totalEvents(events.size())
                 .totalTicketsSold(totalTicketsSold)
                 .totalRevenue(totalRevenue)

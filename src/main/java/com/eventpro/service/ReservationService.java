@@ -12,6 +12,7 @@ import com.eventpro.entity.enums.ReservationStatus;
 import com.eventpro.exception.InsufficientStockException;
 import com.eventpro.exception.ReservationExpiredException;
 import com.eventpro.exception.ResourceNotFoundException;
+import com.eventpro.mapper.ReservationMapper;
 import com.eventpro.repository.ClientRepository;
 import com.eventpro.repository.PromotionRepository;
 import com.eventpro.repository.ReservationRepository;
@@ -35,17 +36,20 @@ public class ReservationService {
     private final ClientRepository clientRepository;
     private final PromotionRepository promotionRepository;
     private final TicketCategoriesPerEventRepository categoryRepository;
+    private final ReservationMapper reservationMapper;
 
     public ReservationService(
             ReservationRepository reservationRepository,
             ClientRepository clientRepository,
             PromotionRepository promotionRepository,
-            TicketCategoriesPerEventRepository categoryRepository
+            TicketCategoriesPerEventRepository categoryRepository,
+            ReservationMapper reservationMapper
     ) {
         this.reservationRepository = reservationRepository;
         this.clientRepository = clientRepository;
         this.promotionRepository = promotionRepository;
         this.categoryRepository = categoryRepository;
+        this.reservationMapper = reservationMapper;
     }
 
     @Transactional
@@ -179,7 +183,7 @@ public class ReservationService {
 
         Reservation saved = reservationRepository.save(reservation);
 
-        return toResponse(saved);
+        return reservationMapper.toResponse(saved);
     }
 
     @Transactional
@@ -189,13 +193,13 @@ public class ReservationService {
                         "Réservation introuvable : " + id
                 ));
 
-        return toResponse(reservation);
+        return reservationMapper.toResponse(reservation);
     }
 
     @Transactional
     public List<ReservationResponse> getReservationsByClient(Long clientId) {
         return reservationRepository.findByClientId(clientId).stream()
-                .map(this::toResponse)
+                .map(reservationMapper::toResponse)
                 .toList();
     }
 
@@ -235,7 +239,7 @@ public class ReservationService {
 
         reservation.confirm();
 
-        return toResponse(reservationRepository.save(reservation));
+        return reservationMapper.toResponse(reservationRepository.save(reservation));
     }
 
     @Transactional
@@ -261,7 +265,7 @@ public class ReservationService {
 
         reservation.cancel();
 
-        return toResponse(reservationRepository.save(reservation));
+        return reservationMapper.toResponse(reservationRepository.save(reservation));
     }
 
     @Transactional
@@ -283,17 +287,5 @@ public class ReservationService {
         }
 
         return expiredReservations.size();
-    }
-
-    private ReservationResponse toResponse(Reservation reservation) {
-        return new ReservationResponse(
-                reservation.getId(),
-                reservation.getReference(),
-                reservation.getClient().getId(),
-                reservation.getCreationDate(),
-                reservation.getExpirationDate(),
-                reservation.getStatus(),
-                reservation.getTotalAmount()
-        );
     }
 }

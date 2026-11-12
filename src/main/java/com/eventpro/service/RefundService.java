@@ -14,6 +14,7 @@ import com.eventpro.entity.enums.RefundStatus;
 import com.eventpro.entity.enums.ReservationStatus;
 import com.eventpro.entity.enums.TicketStatus;
 import com.eventpro.exception.ResourceNotFoundException;
+import com.eventpro.mapper.RefundMapper;
 import com.eventpro.repository.PaymentRepository;
 import com.eventpro.repository.RefundRepository;
 import com.eventpro.repository.ReservationRepository;
@@ -35,19 +36,22 @@ public class RefundService {
     private final ReservationRepository reservationRepository;
     private final TicketRepository ticketRepository;
     private final TicketCategoriesPerEventRepository categoryRepository;
+    private final RefundMapper refundMapper;
 
     public RefundService(
             RefundRepository refundRepository,
             PaymentRepository paymentRepository,
             ReservationRepository reservationRepository,
             TicketRepository ticketRepository,
-            TicketCategoriesPerEventRepository categoryRepository
+            TicketCategoriesPerEventRepository categoryRepository,
+            RefundMapper refundMapper
     ) {
         this.refundRepository = refundRepository;
         this.paymentRepository = paymentRepository;
         this.reservationRepository = reservationRepository;
         this.ticketRepository = ticketRepository;
         this.categoryRepository = categoryRepository;
+        this.refundMapper = refundMapper;
     }
 
     @Transactional
@@ -98,7 +102,7 @@ public class RefundService {
             reservation.setStatus(ReservationStatus.REFUNDED);
             reservationRepository.save(reservation);
 
-            return toResponse(savedRefund, "Remboursement intégral de 100% accordé.");
+            return refundMapper.toResponseWithMessage(savedRefund, "Remboursement intégral de 100% accordé.");
         } else {
             Refund refund = Refund.builder()
                     .payment(payment)
@@ -110,7 +114,7 @@ public class RefundService {
 
             Refund savedRefund = refundRepository.save(refund);
 
-            return toResponse(savedRefund, "Demande de remboursement refusée (délai inférieur à 48h).");
+            return refundMapper.toResponseWithMessage(savedRefund, "Demande de remboursement refusée (délai inférieur à 48h).");
         }
     }
 
@@ -153,25 +157,13 @@ public class RefundService {
     public RefundResponse getRefundById(Long id) {
         Refund refund = refundRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Remboursement introuvable : " + id));
-        return toResponse(refund, null);
+        return refundMapper.toResponseWithMessage(refund, null);
     }
 
     @Transactional
     public List<RefundResponse> getRefundsByPayment(Long paymentId) {
         return refundRepository.findByPaymentId(paymentId).stream()
-                .map(r -> toResponse(r, null))
+                .map(r -> refundMapper.toResponseWithMessage(r, null))
                 .toList();
-    }
-
-    private RefundResponse toResponse(Refund refund, String message) {
-        return RefundResponse.builder()
-                .id(refund.getId())
-                .paymentId(refund.getPayment().getId())
-                .amount(refund.getAmount())
-                .reason(refund.getReason())
-                .requestDate(refund.getRequestDate())
-                .status(refund.getStatus())
-                .message(message != null ? message : "Statut : " + refund.getStatus())
-                .build();
     }
 }

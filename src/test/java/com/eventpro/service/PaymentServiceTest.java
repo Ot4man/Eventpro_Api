@@ -7,6 +7,7 @@ import com.eventpro.entity.enums.PaymentStatus;
 import com.eventpro.entity.enums.ReservationStatus;
 import com.eventpro.exception.IdempotencyConflictException;
 import com.eventpro.exception.ReservationExpiredException;
+import com.eventpro.mapper.PaymentMapper;
 import com.eventpro.repository.PaymentRepository;
 import com.eventpro.repository.ReservationRepository;
 import com.eventpro.repository.TicketCategoriesPerEventRepository;
@@ -43,6 +44,9 @@ class PaymentServiceTest {
     @Mock
     private TicketService ticketService;
 
+    @Mock
+    private PaymentMapper paymentMapper;
+
     @InjectMocks
     private PaymentService paymentService;
 
@@ -75,6 +79,19 @@ class PaymentServiceTest {
                 .build();
 
         reservation.setLines(List.of(line));
+
+        lenient().when(paymentMapper.toResponse(any(Payment.class))).thenAnswer(inv -> {
+            Payment p = inv.getArgument(0);
+            return PaymentResponse.builder()
+                    .id(p.getId())
+                    .reference(p.getReference())
+                    .reservationId(p.getReservation() != null ? p.getReservation().getId() : null)
+                    .idempotencyKey(p.getIdempotencyKey())
+                    .amount(p.getAmount())
+                    .paymentDate(p.getPaymentDate())
+                    .status(p.getStatus())
+                    .build();
+        });
     }
 
     @Test
@@ -146,4 +163,3 @@ class PaymentServiceTest {
         assertEquals(0, eventCategory.getReservedQuantity());
     }
 }
-

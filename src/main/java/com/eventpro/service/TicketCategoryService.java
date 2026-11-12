@@ -6,6 +6,7 @@ import com.eventpro.dto.TicketCategoryResponse;
 import com.eventpro.entity.TicketCategory;
 import com.eventpro.entity.TicketCategoriesPerEvent;
 import com.eventpro.exception.ResourceNotFoundException;
+import com.eventpro.mapper.CategoryMapper;
 import com.eventpro.repository.TicketCategoryRepository;
 import com.eventpro.repository.TicketCategoriesPerEventRepository;
 import jakarta.transaction.Transactional;
@@ -19,19 +20,22 @@ public class TicketCategoryService {
 
     private final TicketCategoryRepository ticketCategoryRepository;
     private final TicketCategoriesPerEventRepository eventCategoryRepository;
+    private final CategoryMapper categoryMapper;
 
     public TicketCategoryService(
             TicketCategoryRepository ticketCategoryRepository,
-            TicketCategoriesPerEventRepository eventCategoryRepository
+            TicketCategoriesPerEventRepository eventCategoryRepository,
+            CategoryMapper categoryMapper
     ) {
         this.ticketCategoryRepository = ticketCategoryRepository;
         this.eventCategoryRepository = eventCategoryRepository;
+        this.categoryMapper = categoryMapper;
     }
 
     @Transactional
     public List<CategoryResponse> getAllCategories() {
         return ticketCategoryRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(categoryMapper::toResponse)
                 .toList();
     }
 
@@ -39,7 +43,7 @@ public class TicketCategoryService {
     public CategoryResponse getCategoryById(Long id) {
         TicketCategory category = ticketCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Catégorie de billet introuvable : " + id));
-        return toResponse(category);
+        return categoryMapper.toResponse(category);
     }
 
     @Transactional
@@ -52,7 +56,7 @@ public class TicketCategoryService {
                 .name(request.name().trim())
                 .build();
 
-        return toResponse(ticketCategoryRepository.save(category));
+        return categoryMapper.toResponse(ticketCategoryRepository.save(category));
     }
 
     @Transactional
@@ -91,13 +95,6 @@ public class TicketCategoryService {
                 .unitPrice(saved.getUnitPrice())
                 .totalQuantity(saved.getTotalQuantity())
                 .maxQuotaPerClient(saved.getMaxQuotaPerClient())
-                .build();
-    }
-
-    private CategoryResponse toResponse(TicketCategory category) {
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
                 .build();
     }
 }

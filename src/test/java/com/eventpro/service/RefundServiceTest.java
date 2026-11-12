@@ -7,6 +7,7 @@ import com.eventpro.entity.enums.PaymentStatus;
 import com.eventpro.entity.enums.RefundStatus;
 import com.eventpro.entity.enums.ReservationStatus;
 import com.eventpro.entity.enums.TicketStatus;
+import com.eventpro.mapper.RefundMapper;
 import com.eventpro.repository.PaymentRepository;
 import com.eventpro.repository.RefundRepository;
 import com.eventpro.repository.ReservationRepository;
@@ -28,6 +29,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +49,9 @@ class RefundServiceTest {
 
     @Mock
     private TicketCategoriesPerEventRepository categoryRepository;
+
+    @Mock
+    private RefundMapper refundMapper;
 
     @InjectMocks
     private RefundService refundService;
@@ -99,6 +104,20 @@ class RefundServiceTest {
                 .reservationLine(line)
                 .status(TicketStatus.VALID)
                 .build();
+
+        lenient().when(refundMapper.toResponseWithMessage(any(Refund.class), any())).thenAnswer(inv -> {
+            Refund r = inv.getArgument(0);
+            String msg = inv.getArgument(1);
+            return RefundResponse.builder()
+                    .id(r.getId())
+                    .paymentId(r.getPayment() != null ? r.getPayment().getId() : null)
+                    .amount(r.getAmount())
+                    .reason(r.getReason())
+                    .requestDate(r.getRequestDate())
+                    .status(r.getStatus())
+                    .message(msg)
+                    .build();
+        });
     }
 
     @Test
