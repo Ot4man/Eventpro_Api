@@ -9,6 +9,7 @@ import com.eventpro.entity.Reservation;
 import com.eventpro.entity.ReservationLine;
 import com.eventpro.entity.TicketCategoriesPerEvent;
 import com.eventpro.entity.enums.ReservationStatus;
+import com.eventpro.exception.AucuneReservationTrouveeException;
 import com.eventpro.exception.InsufficientStockException;
 import com.eventpro.exception.ReservationExpiredException;
 import com.eventpro.exception.ResourceNotFoundException;
@@ -195,6 +196,24 @@ public class ReservationService {
 
         return reservationMapper.toResponse(reservation);
     }
+    //mise en situtaion
+
+    public List<ReservationResponse> rechercherReservations(String email, String nomCategorie,int quantiteMin){
+        List<Reservation> reservations =
+                reservationRepository.rechercherReservations(
+                        ReservationStatus.CONFIRMED,
+                        email,
+                        nomCategorie,
+                        quantiteMin
+                );
+        if (reservations.isEmpty()) {
+            throw new AucuneReservationTrouveeException(
+                    "Aucune"
+            );
+        }
+
+        return reservationMapper.toResponse(reservations);
+    }
 
     @Transactional
     public List<ReservationResponse> getReservationsByClient(Long clientId) {
@@ -289,3 +308,5 @@ public class ReservationService {
         return expiredReservations.size();
     }
 }
+
+

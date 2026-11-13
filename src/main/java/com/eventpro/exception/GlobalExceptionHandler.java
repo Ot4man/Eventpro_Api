@@ -31,6 +31,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+    ///mise en situation
+    @ExceptionHandler(AucuneReservationTrouveeException.class)
+    public ResponseEntity<ErrorResponse> handleAucuneReservationTrouvee(
+            ResourceNotFoundException ex ,
+            HttpServletRequest request
+    ){
+        ErrorResponse errorResponse = ErrorResponse.builder().timestamp(Instant.now()).status(HttpStatus.NOT_FOUND
+                .value()).error("Not Found").message(ex.getMessage()).path(request.getRequestURI()).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
@@ -106,4 +118,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+
 }
